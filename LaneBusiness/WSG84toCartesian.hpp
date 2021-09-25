@@ -29,6 +29,7 @@
 #include <cmath>
 #include <array>
 #include <limits>
+#include <stdint.h>
 
 namespace wgs84 {
 
