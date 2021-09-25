@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+LaneBusiness/.vs/LaneBusiness/v16/.suo
+
+*.db
