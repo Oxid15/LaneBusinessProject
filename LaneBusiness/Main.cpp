@@ -14,7 +14,7 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 
 bool test()
 {
-	auto rPos = std::array<double, 3>({ 59.94005, 30.30985, 0. });
+	auto rPos = std::array<double, 3>({ 59.96769, 30.30985, 0. });
 	double rAzimuth = 110.;
 
 	auto aPos = std::array<double, 3>({ 59.96783, 30.30958, 0. });
@@ -37,6 +37,6 @@ bool test()
 
 int main()
 {
-	assert(test);
+	assert(test());
 	return 0;
 }
