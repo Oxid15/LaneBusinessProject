@@ -3,11 +3,26 @@
 
 using namespace cv;
 
+const double M_PI = 3.141592653589793;
 
+double deg2rad(double deg) {
+	return deg * M_PI / 180.0;
+}
+
+/// Rotates point in place counterclockwise
+void rotate(std::array<double, 3>& point, double angleRad)
+{
+	auto point1 = point[1] * cos(angleRad) - point[0] * sin(angleRad); // x
+	auto point0 = point[1] * sin(angleRad) + point[0] * cos(angleRad); // y
+
+	point[1] = point1;
+	point[0] = point0;
+}
+
+
+/// Wrapper around similar function from namespace wgs84 which is 2DoF
 std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::array<double, 3> targetPoint)
 {
-	/// Wrapper around similar function from namespace wgs84 which is 2DoF
-
 	std::array<double, 2> refPoint2DoF;
 	std::array<double, 2> targetPoint2DoF;
 	std::copy(referencePoint.begin(), referencePoint.begin() + 2, refPoint2DoF.begin());
@@ -33,10 +48,17 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	std::array<double, 3> bPosCart = toCartesian(rPos, bPos);
 
 	// Rotate them to match robot's coordinate system
-
-	// Find all the points of the Lanes
+	rotate(aPosCart, deg2rad(rAzimuth));
+	rotate(bPosCart, deg2rad(rAzimuth));
 
 	// Find all the points of an object
+	auto objPoints = getBoxPoints(objPos, objLength, objWidth);
+	for (auto objPoint : objPoints)
+	{
+		rotate(objPoint, objYaw);
+	}
+
+	// Find all the points of the Lanes
 
 	// Check if any points of the object is inside any lane
 
