@@ -9,14 +9,27 @@ double deg2rad(double deg) {
 	return deg * M_PI / 180.0;
 }
 
+
+/// Returns 4 box points given center and width with height
+std::array<std::array<double, 3>, 4> getBoxPoints(std::array<double, 3> centerPoint, double length, double height)
+{
+	std::array<double, 3> upperLeft = {centerPoint[0] + height / 2, centerPoint[1] - length / 2, 0.};
+	std::array<double, 3> upperRight = { centerPoint[0] + height / 2, centerPoint[1] + length / 2, 0. };
+	std::array<double, 3> lowerLeft = { centerPoint[0] - height / 2, centerPoint[1] - length / 2, 0. };
+	std::array<double, 3> lowerRight = { centerPoint[0] - height / 2, centerPoint[1] + length / 2, 0. };
+
+	return std::array<std::array<double, 3>, 4>({ upperLeft, upperRight, lowerLeft, lowerRight});
+}
+
+
 /// Rotates point in place counterclockwise
 void rotate(std::array<double, 3>& point, double angleRad)
 {
-	auto point1 = point[1] * cos(angleRad) - point[0] * sin(angleRad); // x
 	auto point0 = point[1] * sin(angleRad) + point[0] * cos(angleRad); // y
+	auto point1 = point[1] * cos(angleRad) - point[0] * sin(angleRad); // x
 
-	point[1] = point1;
 	point[0] = point0;
+	point[1] = point1;
 }
 
 
@@ -48,14 +61,17 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	std::array<double, 3> bPosCart = toCartesian(rPos, bPos);
 
 	// Rotate them to match robot's coordinate system
-	rotate(aPosCart, deg2rad(rAzimuth));
-	rotate(bPosCart, deg2rad(rAzimuth));
+	rotate(aPosCart, deg2rad(-rAzimuth));
+	rotate(bPosCart, deg2rad(-rAzimuth));
 
-	// Find all the points of an object
-	auto objPoints = getBoxPoints(objPos, objLength, objWidth);
-	for (auto objPoint : objPoints)
+	// Find all the points of an object 
+	// objPos
+	auto objPoints = getBoxPoints(std::array<double, 3>({0., 0., 0.}), objWidth, objLength);
+	for (auto &objPoint : objPoints)
 	{
-		rotate(objPoint, objYaw);
+		rotate(objPoint, -objYaw);
+		objPoint[0] += objPos[0];
+		objPoint[1] += objPos[1];
 	}
 
 	// Find all the points of the Lanes
@@ -67,19 +83,18 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 
 bool test()
 {
-	auto rPos = std::array<double, 3>({ 59.96769, 30.30985, 0. });
-	double rAzimuth = 110.;
+	auto rPos = std::array<double, 3>({ 59.96769, 30.30985, 0. }); // lat, long, height
+	double rAzimuth = 30;
 
-	auto aPos = std::array<double, 3>({ 59.96783, 30.30958, 0. });
-	auto bPos = std::array<double, 3>({ 59.96804, 30.30938, 0. });
+	auto aPos = std::array<double, 3>({ 59.967681024726275, 30.310046939745639, 0. });
+	auto bPos = std::array<double, 3>({ 59.967752830076989, 30.310118554680990, 0. });
 	int nLanes = 2;
 	double laneWidth = 2.;
 
-	auto objPos = std::array<double, 3>({-8., 17., 0.});
-	double objYaw = 3.14;
-	double objLength = 4.5;
+	auto objPos = std::array<double, 3>({7., 9., 0.}); // y, x, z
+	double objYaw = 0.5235983;
+	double objLength = 4.;
 	double objWidth = 2.;
-
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
