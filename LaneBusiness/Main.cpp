@@ -1,8 +1,6 @@
 #include "C:\opencv\build\include\opencv2\opencv.hpp"
 #include "WSG84toCartesian.hpp"
 
-using namespace cv;
-
 const double M_PI = 3.141592653589793;
 
 double deg2rad(double deg) {
@@ -14,11 +12,18 @@ std::array<std::array<double, 3>, 4> getBoxPoints(std::array<double, 3> centerPo
 {
 	std::array<double, 3> upperLeft = {centerPoint[0] + height / 2, centerPoint[1] - length / 2, 0.};
 	std::array<double, 3> upperRight = { centerPoint[0] + height / 2, centerPoint[1] + length / 2, 0. };
-	std::array<double, 3> lowerLeft = { centerPoint[0] - height / 2, centerPoint[1] - length / 2, 0. };
 	std::array<double, 3> lowerRight = { centerPoint[0] - height / 2, centerPoint[1] + length / 2, 0. };
+	std::array<double, 3> lowerLeft = { centerPoint[0] - height / 2, centerPoint[1] - length / 2, 0. };
 
-	return std::array<std::array<double, 3>, 4>({ upperLeft, upperRight, lowerLeft, lowerRight});
+	return std::array<std::array<double, 3>, 4>({ upperLeft, upperRight, lowerRight, lowerLeft});
 }
+
+void scale(std::array<double, 3>& point, double factor)
+{
+	point[0] *= factor;
+	point[1] *= factor;
+}
+
 
 /// Rotates point in place counterclockwise
 void rotate(std::array<double, 3>& point, double angleRad)
@@ -46,6 +51,43 @@ std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::arr
 	return result;
 }
 
+void drawArbitraryRect(cv::Mat& img, std::array<std::array<double, 3>, 4> rect, cv::Scalar color, int thickness = 1)
+{
+	for (uint32_t i = 0; i < 3; i++)
+	{
+		cv::line(img, cv::Point(rect[i][1], rect[i][0]), cv::Point(rect[i + 1][1], rect[i + 1][0]), color, thickness = 1);
+	}
+	cv::line(img, cv::Point(rect[3][1], rect[3][0]), cv::Point(rect[0][1], rect[0][0]), color, thickness);
+}
+
+/// Visualizes scene in the coordinates of the robot
+void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos, std::array<std::array<double, 3>, 4> objectPos)
+{
+	auto img = cv::Mat(300, 300, CV_8UC3);
+
+	for (auto& lane : lanesPos)
+	{
+		for (auto& point : lane)
+		{
+			scale(point, 10);
+		}
+		drawArbitraryRect(img, lane, cv::Scalar(0, 0, 255), 2);
+	}
+
+	// Draw object scaled
+	for (auto& point : objectPos)
+	{
+		scale(point, 10);
+	}
+	
+	drawArbitraryRect(img, objectPos, cv::Scalar(255, 0, 0), 2);
+
+	// flip since Y axis in the images is inverted
+	cv::flip(img, img, 0);
+
+	cv::imshow("demo", img);
+	cv::waitKey(0);
+}
 
 std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<double, 3> aPos, std::array<double, 3> bPos, double laneWidth, uint32_t nLanes)
 {
