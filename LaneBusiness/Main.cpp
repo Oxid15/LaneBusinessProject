@@ -111,10 +111,10 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	for (i = 0, y = -(nLanes * laneWidth / 2); i < nLanes; i++, y += laneWidth)
 	{
 		auto laneCoords = std::array<std::array<double, 3>, 4 >({
-			std::array<double, 3>({y, 0., 0.}),                  // upper left
-			std::array<double, 3>({y, bPos[1], 0.}),             // upper right
-			std::array<double, 3>({y + laneWidth, bPos[1], 0.}), // lower right
-			std::array<double, 3>({y + laneWidth, 0., 0.})       // lower left
+			std::array<double, 3>({y, 0., 0.}),                  // lower left
+			std::array<double, 3>({y, bPos[1], 0.}),             // lower right
+			std::array<double, 3>({y + laneWidth, bPos[1], 0.}), // upper right
+			std::array<double, 3>({y + laneWidth, 0., 0.})       // upper left
 			});
 
 		for (auto& laneCoord : laneCoords)
@@ -127,6 +127,58 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	}
 
 	return lanesCoordinates;
+}
+
+std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>> lanesPoints, std::array<std::array<double, 3>, 4> objPoints)
+{
+	// transform lanes to make their rectangles regular, with angle = 0
+	auto referencePoint = lanesPoints[0][0]; //the lower left of rightest lane
+
+	double roadYawRad = atan((lanesPoints[0][0][0] - lanesPoints[0][1][0])
+		/ (lanesPoints[0][1][0] - lanesPoints[0][2][0]));
+
+	double shiftY = referencePoint[0];
+	double shiftX = referencePoint[1];
+
+	for (auto& lane : lanesPoints)
+	{
+		for (auto& point : lane)
+		{
+			point[0] -= shiftY;
+			point[1] -= shiftX;
+
+			rotate(point, -roadYawRad);
+		}
+	}
+
+	for (auto& point : objPoints)
+	{
+		point[0] -= shiftY;
+		point[1] -= shiftX;
+
+		rotate(point, -roadYawRad);
+	}
+
+	// Check object points in lanes
+	auto busyLanes = std::vector<int>();
+
+	for (int i  = 0; i < lanesPoints.size(); i++)
+	{
+		for (auto& objPoint : objPoints)
+		{
+			auto lowerLeft = lanesPoints[i][0];
+			auto upperRight = lanesPoints[i][2];
+
+			if (objPoint[1] >= lowerLeft[1] && objPoint[1] <= upperRight[1] 
+				&& objPoint[0] > lowerLeft[0] && objPoint[0] <= upperRight[0])
+			{
+				busyLanes.push_back(i + 1);
+				break;
+			}
+		}
+	}
+
+	return busyLanes;
 }
 
 std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
@@ -158,8 +210,7 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	visualizeScene(lanePoints, objPoints);
 
 	// Check if any points of the object is inside any lane
-
-	return std::vector<int>();
+	return whichLanesBusy(lanePoints, objPoints);
 }
 
 bool test()
@@ -179,8 +230,8 @@ bool test()
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
-	//if(result == std::vector<int>({1, 2}))
-	return true;
+	if(result == std::vector<int>({1}))
+		return true;
 }
 
 int main()
