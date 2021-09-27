@@ -50,11 +50,58 @@ std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::arr
 }
 
 
+std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<double, 3> aPos, std::array<double, 3> bPos, double laneWidth, uint32_t nLanes)
+{
+	double roadYawRad = atan((aPos[0] - aPos[0]) / (bPos[1] - aPos[1]));
+
+	double shiftY = aPos[0];
+	double shiftX = aPos[1];
+
+	aPos[0] -= shiftY;
+	aPos[1] -= shiftX;
+	bPos[0] -= shiftY;
+	bPos[1] -= shiftX;
+
+	rotate(aPos, -roadYawRad);
+	rotate(bPos, -roadYawRad);
+
+	auto lanesCoordinates = std::vector<std::array<std::array<double, 3>, 4>>();
+
+	uint32_t i;
+	double y;
+	for (i = 0, y = -(nLanes * laneWidth / 2); i < nLanes; i++, y += laneWidth)
+	{
+		auto laneCoords = std::array<std::array<double, 3>, 4 >({
+			std::array<double, 3>({y, 0., 0.}),                  // upper left
+			std::array<double, 3>({y, bPos[1], 0.}),             // upper right
+			std::array<double, 3>({y + laneWidth, bPos[1], 0.}), // lower right
+			std::array<double, 3>({y + laneWidth, 0., 0.})       // lower left
+			});
+
+		for (auto& laneCoord : laneCoords)
+		{
+			laneCoord[0] += shiftY;
+			laneCoord[1] += shiftX;
+			rotate(laneCoord, roadYawRad);
+		}
+		lanesCoordinates.push_back(laneCoords);
+	}
+
+	return lanesCoordinates;
+}
+
 std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	std::array<double, 3> aPos, std::array<double, 3> bPos, int nLanes, double laneWidth,
 	std::array<double, 3> objPos, double objYaw, double objLength, double objWidth)
 {
-	//auto debug_result = wgs84::toCartesian(std::array<double, 2>({ 59.96769, 30.30985}), std::array<double, 2>({ 59.96783, 30.30958}));
+	// Find all the points of an object 
+	auto objPoints = getBoxPoints(std::array<double, 3>({0., 0., 0.}), objWidth, objLength);
+	for (auto &objPoint : objPoints)
+	{
+		rotate(objPoint, -objYaw);
+		objPoint[0] += objPos[0];
+		objPoint[1] += objPos[1];
+	}
 
 	// Find the road points in cartesian coords
 	std::array<double, 3> aPosCart = toCartesian(rPos, aPos);
@@ -64,21 +111,16 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	rotate(aPosCart, deg2rad(-rAzimuth));
 	rotate(bPosCart, deg2rad(-rAzimuth));
 
-	// Find all the points of an object 
-	// objPos
-	auto objPoints = getBoxPoints(std::array<double, 3>({0., 0., 0.}), objWidth, objLength);
-	for (auto &objPoint : objPoints)
-	{
-		rotate(objPoint, -objYaw);
-		objPoint[0] += objPos[0];
-		objPoint[1] += objPos[1];
-	}
+	// Find all the points of the lanes
 
-	// Find all the points of the Lanes
+	auto lanePoints = lanesCoordinates(aPosCart, bPosCart, laneWidth, nLanes);
+	
+	// Visualize the scene in the coordinates of a robot
+	visualizeScene(lanePoints, objPoints);
 
 	// Check if any points of the object is inside any lane
 
-	return std::vector<int>(1, 2);
+	return std::vector<int>();
 }
 
 bool test()
@@ -88,7 +130,7 @@ bool test()
 
 	auto aPos = std::array<double, 3>({ 59.967681024726275, 30.310046939745639, 0. });
 	auto bPos = std::array<double, 3>({ 59.967752830076989, 30.310118554680990, 0. });
-	int nLanes = 2;
+	uint32_t nLanes = 2;
 	double laneWidth = 2.;
 
 	auto objPos = std::array<double, 3>({7., 9., 0.}); // y, x, z
