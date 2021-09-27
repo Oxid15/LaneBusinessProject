@@ -9,7 +9,6 @@ double deg2rad(double deg) {
 	return deg * M_PI / 180.0;
 }
 
-
 /// Returns 4 box points given center and width with height
 std::array<std::array<double, 3>, 4> getBoxPoints(std::array<double, 3> centerPoint, double length, double height)
 {
@@ -21,7 +20,6 @@ std::array<std::array<double, 3>, 4> getBoxPoints(std::array<double, 3> centerPo
 	return std::array<std::array<double, 3>, 4>({ upperLeft, upperRight, lowerLeft, lowerRight});
 }
 
-
 /// Rotates point in place counterclockwise
 void rotate(std::array<double, 3>& point, double angleRad)
 {
@@ -31,7 +29,6 @@ void rotate(std::array<double, 3>& point, double angleRad)
 	point[0] = point0;
 	point[1] = point1;
 }
-
 
 /// Wrapper around similar function from namespace wgs84 which is 2DoF
 std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::array<double, 3> targetPoint)
@@ -143,7 +140,6 @@ bool test()
 	//if(result == std::vector<int>({1, 2}))
 	return true;
 }
-
 
 int main()
 {
