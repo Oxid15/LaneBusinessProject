@@ -276,7 +276,7 @@ bool test3()
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
-	if (result == std::vector<int>())
+	if (result == std::vector<int>(1, 2))
 		return true;
 	else
 		return false;
