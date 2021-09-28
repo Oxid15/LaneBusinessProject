@@ -97,7 +97,7 @@ void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos, 
 
 std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<double, 3> aPos, std::array<double, 3> bPos, double laneWidth, uint32_t nLanes)
 {
-	double roadYawRad = atan((aPos[0] - aPos[0]) / (bPos[1] - aPos[1]));
+	double roadYawRad = atan((bPos[0] - aPos[0]) / (bPos[1] - aPos[1]));
 
 	double shiftY = aPos[0];
 	double shiftX = aPos[1];
@@ -260,11 +260,11 @@ bool test2()
 bool test3()
 {
 	auto rPos = std::array<double, 3>({ 59.96769, 30.30985, 0. }); // lat, long, height
-	double rAzimuth = 30;
+	double rAzimuth = 20;
 
 	auto aPos = std::array<double, 3>({ 59.967681024726275, 30.310046939745639, 0. });
 	auto bPos = std::array<double, 3>({ 59.967752830076989, 30.310118554680990, 0. });
-	uint32_t nLanes = 4;
+	uint32_t nLanes = 6;
 	double laneWidth = 2.;
 
 	auto objPos = std::array<double, 3>({ 7., 9., 0. }); // y, x, z
