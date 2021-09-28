@@ -17,7 +17,7 @@ bool test()
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
-	if(result == std::vector<int>({1}))
+	if(result == std::vector<uint32_t>({1}))
 		return true;
 	else
 		return false;
@@ -40,7 +40,7 @@ bool test2()
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
-	if (result == std::vector<int>())
+	if (result == std::vector<uint32_t>())
 		return true;
 	else
 		return false;
@@ -63,7 +63,7 @@ bool test3()
 
 	auto result = busyLanes(rPos, rAzimuth, aPos, bPos, nLanes, laneWidth, objPos, objYaw, objLength, objWidth);
 
-	if (result == std::vector<int>({ 1, 2 }))
+	if (result == std::vector<uint32_t>({ 1, 2 }))
 		return true;
 	else
 		return false;

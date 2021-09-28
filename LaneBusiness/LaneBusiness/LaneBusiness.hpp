@@ -80,9 +80,12 @@ void drawArbitraryRect(cv::Mat& img, std::array<std::array<double, 3>, 4> rect, 
 }
 
 /// Visualizes scene in the coordinates of the robot
-void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos, std::array<std::array<double, 3>, 4> objectPos)
+void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos, 
+	std::array<std::array<double, 3>, 4> objectPos, 
+	uint32_t sceneSizeX = 300,
+	uint32_t sceneSizeY = 300)
 {
-	auto img = cv::Mat(300, 300, CV_8UC3);
+	auto img = cv::Mat(sceneSizeX, sceneSizeY, CV_8UC3);
 
 	for (auto& lane : lanesPos)
 	{
@@ -164,7 +167,7 @@ bool areRectsIntersect(std::array<std::array<double, 3>, 4> rect1, std::array<st
 	return false;
 }
 
-std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>> lanesPoints, std::array<std::array<double, 3>, 4> objPoints)
+std::vector<uint32_t> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>> lanesPoints, std::array<std::array<double, 3>, 4> objPoints)
 {
 	// transform lanes to make their rectangles regular, with angle = 0
 	auto referencePoint = lanesPoints[0][0]; //the lower left of rightest lane
@@ -191,9 +194,9 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 	}
 
 	// Check object in lanes
-	auto busyLanes = std::vector<int>();
+	auto busyLanes = std::vector<uint32_t>();
 
-	for (int i = 0; i < lanesPoints.size(); i++)
+	for (uint32_t i = 0; i < lanesPoints.size(); i++)
 	{
 		if (areRectsIntersect(lanesPoints[i], objPoints))
 		{
@@ -203,8 +206,8 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 	return busyLanes;
 }
 
-std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
-	std::array<double, 3> aPos, std::array<double, 3> bPos, int nLanes, double laneWidth,
+std::vector<uint32_t> busyLanes(std::array<double, 3> rPos, double rAzimuth,
+	std::array<double, 3> aPos, std::array<double, 3> bPos, uint32_t nLanes, double laneWidth,
 	std::array<double, 3> objPos, double objYaw, double objLength, double objWidth, bool viz=true)
 {
 	// Find all the points of an object 
