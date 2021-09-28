@@ -171,10 +171,12 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 			if (objPoint[1] >= lowerLeft[1] && objPoint[1] <= upperRight[1] 
 				&& objPoint[0] > lowerLeft[0] && objPoint[0] <= upperRight[0])
 			{
-				auto res = std::find(busyLanes.begin(), busyLanes.end(), i + 1);
-				if (res != busyLanes.end() || busyLanes.size() == 0)
+				if (std::find(busyLanes.begin(), busyLanes.end(), i + 1) != busyLanes.end() // don't add if lane is present
+					|| busyLanes.size() == 0) // but add if no lane is present
+				{
 					busyLanes.push_back(i + 1);
-				break;
+					break;
+				}
 			}
 		}
 	}
