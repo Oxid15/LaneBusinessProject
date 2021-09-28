@@ -102,8 +102,8 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	double shiftY = aPos[0];
 	double shiftX = aPos[1];
 
-	shift(aPos, shiftX, shiftY);
-	shift(bPos, shiftX, shiftY);
+	shift(aPos, -shiftX, -shiftY);
+	shift(bPos, -shiftX, -shiftY);
 
 	rotate(aPos, -roadYawRad);
 	rotate(bPos, -roadYawRad);
@@ -171,7 +171,9 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 			if (objPoint[1] >= lowerLeft[1] && objPoint[1] <= upperRight[1] 
 				&& objPoint[0] > lowerLeft[0] && objPoint[0] <= upperRight[0])
 			{
-				busyLanes.push_back(i + 1);
+				auto res = std::find(busyLanes.begin(), busyLanes.end(), i + 1);
+				if (res != busyLanes.end() || busyLanes.size() == 0)
+					busyLanes.push_back(i + 1);
 				break;
 			}
 		}
@@ -201,7 +203,6 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	rotate(bPosCart, deg2rad(-rAzimuth));
 
 	// Find all the points of the lanes
-
 	auto lanePoints = lanesCoordinates(aPosCart, bPosCart, laneWidth, nLanes);
 	
 	// Visualize the scene in the coordinates of a robot
@@ -282,8 +283,8 @@ bool test3()
 
 int main()
 {
-	//assert(test());
-	//assert(test2());
+	assert(test());
+	assert(test2());
 	assert(test3());
 	return 0;
 }
