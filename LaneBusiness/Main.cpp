@@ -147,18 +147,14 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 	{
 		for (auto& point : lane)
 		{
-			point[0] -= shiftY;
-			point[1] -= shiftX;
-
+			shift(point, -shiftX, -shiftY);
 			rotate(point, -roadYawRad);
 		}
 	}
 
 	for (auto& point : objPoints)
 	{
-		point[0] -= shiftY;
-		point[1] -= shiftX;
-
+		shift(point, -shiftX, -shiftY);
 		rotate(point, -roadYawRad);
 	}
 
