@@ -35,6 +35,12 @@ void rotate(std::array<double, 3>& point, double angleRad)
 	point[1] = point1;
 }
 
+void shift(std::array<double, 3>& point, double shiftX, double shiftY)
+{
+	point[0] += shiftY;
+	point[1] += shiftX;
+}
+
 /// Wrapper around similar function from namespace wgs84 which is 2DoF
 std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::array<double, 3> targetPoint)
 {
@@ -96,10 +102,8 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	double shiftY = aPos[0];
 	double shiftX = aPos[1];
 
-	aPos[0] -= shiftY;
-	aPos[1] -= shiftX;
-	bPos[0] -= shiftY;
-	bPos[1] -= shiftX;
+	shift(aPos, shiftX, shiftY);
+	shift(bPos, shiftX, shiftY);
 
 	rotate(aPos, -roadYawRad);
 	rotate(bPos, -roadYawRad);
@@ -119,8 +123,7 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 
 		for (auto& laneCoord : laneCoords)
 		{
-			laneCoord[0] += shiftY;
-			laneCoord[1] += shiftX;
+			shift(laneCoord, shiftX, shiftY);
 			rotate(laneCoord, roadYawRad);
 		}
 		lanesCoordinates.push_back(laneCoords);
@@ -190,8 +193,7 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	for (auto &objPoint : objPoints)
 	{
 		rotate(objPoint, -objYaw);
-		objPoint[0] += objPos[0];
-		objPoint[1] += objPos[1];
+		shift(objPoint, objPos[1], objPos[0]);
 	}
 
 	// Find the road points in cartesian coords
