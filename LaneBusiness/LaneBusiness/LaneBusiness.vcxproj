@@ -145,10 +145,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\WSG84toCartesian.hpp" />
+    <ClCompile Include="..\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Main.cpp" />
+    <ClInclude Include="LineIntersection.h" />
+    <ClInclude Include="WSG84toCartesian.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

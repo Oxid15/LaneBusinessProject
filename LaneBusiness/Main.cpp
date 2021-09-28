@@ -1,5 +1,6 @@
 #include "C:\opencv\build\include\opencv2\opencv.hpp"
-#include "WSG84toCartesian.hpp"
+#include "LaneBusiness\WSG84toCartesian.hpp"
+#include "LaneBusiness\LineIntersection.h"
 
 const double M_PI = 3.141592653589793;
 
@@ -23,7 +24,6 @@ void scale(std::array<double, 3>& point, double factor)
 	point[0] *= factor;
 	point[1] *= factor;
 }
-
 
 /// Rotates point in place counterclockwise
 void rotate(std::array<double, 3>& point, double angleRad)
@@ -57,13 +57,25 @@ std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::arr
 	return result;
 }
 
-void drawArbitraryRect(cv::Mat& img, std::array<std::array<double, 3>, 4> rect, cv::Scalar color, int thickness = 1)
+std::array<std::array<std::array<double, 3>, 2>, 4> getLinesOfRect(std::array<std::array<double, 3>, 4> rect)
 {
+	auto lines = std::array<std::array<std::array<double, 3>, 2>, 4>();
 	for (uint32_t i = 0; i < 3; i++)
 	{
-		cv::line(img, cv::Point(rect[i][1], rect[i][0]), cv::Point(rect[i + 1][1], rect[i + 1][0]), color, thickness = 1);
+		lines[i] = std::array<std::array<double, 3>, 2>({rect[i], rect[i + 1]});
 	}
-	cv::line(img, cv::Point(rect[3][1], rect[3][0]), cv::Point(rect[0][1], rect[0][0]), color, thickness);
+	lines[3] = std::array<std::array<double, 3>, 2>({ rect[3], rect[0] });
+
+	return lines;
+}
+
+void drawArbitraryRect(cv::Mat& img, std::array<std::array<double, 3>, 4> rect, cv::Scalar color, int thickness = 1)
+{
+	auto lines = getLinesOfRect(rect);
+	for (auto line: lines)
+	{
+		cv::line(img, cv::Point(line[0][1], line[0][0]), cv::Point(line[1][1], line[1][0]), color, thickness = 1);
+	}
 }
 
 /// Visualizes scene in the coordinates of the robot
@@ -132,6 +144,25 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	return lanesCoordinates;
 }
 
+bool areRectsIntersect(std::array<std::array<double, 3>, 4> rect1, std::array<std::array<double, 3>, 4> rect2)
+{
+	auto lines1 = getLinesOfRect(rect1);
+	auto lines2 = getLinesOfRect(rect2);
+
+	for (auto line1 : lines1)
+	{
+		for (auto line2 : lines2)
+		{
+			if (areLinesIntersect(line1, line2))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>> lanesPoints, std::array<std::array<double, 3>, 4> objPoints)
 {
 	// transform lanes to make their rectangles regular, with angle = 0
@@ -158,29 +189,16 @@ std::vector<int> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>
 		rotate(point, -roadYawRad);
 	}
 
-	// Check object points in lanes
+	// Check object in lanes
 	auto busyLanes = std::vector<int>();
 
 	for (int i  = 0; i < lanesPoints.size(); i++)
 	{
-		for (auto& objPoint : objPoints)
+		if (areRectsIntersect(lanesPoints[i], objPoints))
 		{
-			auto lowerLeft = lanesPoints[i][0];
-			auto upperRight = lanesPoints[i][2];
-
-			if (objPoint[1] >= lowerLeft[1] && objPoint[1] <= upperRight[1] 
-				&& objPoint[0] > lowerLeft[0] && objPoint[0] <= upperRight[0])
-			{
-				if (std::find(busyLanes.begin(), busyLanes.end(), i + 1) != busyLanes.end() // don't add if lane is present
-					|| busyLanes.size() == 0) // but add if no lane is present
-				{
-					busyLanes.push_back(i + 1);
-					break;
-				}
-			}
+			busyLanes.push_back(i + 1);
 		}
 	}
-
 	return busyLanes;
 }
 
@@ -210,7 +228,7 @@ std::vector<int> busyLanes(std::array<double, 3> rPos, double rAzimuth,
 	// Visualize the scene in the coordinates of a robot
 	visualizeScene(lanePoints, objPoints);
 
-	// Check if any points of the object is inside any lane
+	// Check where the object is
 	return whichLanesBusy(lanePoints, objPoints);
 }
 
@@ -288,5 +306,6 @@ int main()
 	assert(test());
 	assert(test2());
 	assert(test3());
+
 	return 0;
 }
