@@ -148,7 +148,8 @@
     <ClCompile Include="..\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LineIntersection.h" />
+    <ClInclude Include="LaneBusiness.hpp" />
+    <ClInclude Include="LineIntersection.hpp" />
     <ClInclude Include="WSG84toCartesian.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

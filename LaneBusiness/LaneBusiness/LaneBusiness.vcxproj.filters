@@ -23,7 +23,10 @@
     <ClInclude Include="WSG84toCartesian.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LineIntersection.h">
+    <ClInclude Include="LaneBusiness.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LineIntersection.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
