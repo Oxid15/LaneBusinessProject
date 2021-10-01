@@ -9,79 +9,63 @@ double deg2rad(double deg) {
 	return deg * M_PI / 180.0;
 }
 
+double dist(Point a, Point b)
+{
+	return sqrt((a.x + b.x) * (a.x + b.x) + (a.y + b.y) * (a.y + b.y));
+}
+
 /// Returns 4 box points given center and width with height
-std::array<std::array<double, 3>, 4> getBoxPoints(std::array<double, 3> centerPoint, double length, double height)
+std::array<Point, 4> getBoxPoints(const Point& centerPoint, double length, double height)
 {
-	std::array<double, 3> upperLeft = { centerPoint[0] + height / 2, centerPoint[1] - length / 2, 0. };
-	std::array<double, 3> upperRight = { centerPoint[0] + height / 2, centerPoint[1] + length / 2, 0. };
-	std::array<double, 3> lowerRight = { centerPoint[0] - height / 2, centerPoint[1] + length / 2, 0. };
-	std::array<double, 3> lowerLeft = { centerPoint[0] - height / 2, centerPoint[1] - length / 2, 0. };
+	Point upperLeft = { centerPoint.y + height / 2, centerPoint.x - length / 2};
+	Point upperRight = { centerPoint.y + height / 2, centerPoint.x + length / 2};
+	Point lowerRight = { centerPoint.y - height / 2, centerPoint.x + length / 2};
+	Point lowerLeft = { centerPoint.y - height / 2, centerPoint.x - length / 2};
 
-	return std::array<std::array<double, 3>, 4>({ upperLeft, upperRight, lowerRight, lowerLeft });
-}
-
-void scale(std::array<double, 3>& point, double factor)
-{
-	point[0] *= factor;
-	point[1] *= factor;
-}
-
-/// Rotates point in place counterclockwise
-void rotate(std::array<double, 3>& point, double angleRad)
-{
-	auto point0 = point[1] * sin(angleRad) + point[0] * cos(angleRad); // y
-	auto point1 = point[1] * cos(angleRad) - point[0] * sin(angleRad); // x
-
-	point[0] = point0;
-	point[1] = point1;
-}
-
-void shift(std::array<double, 3>& point, double shiftX, double shiftY)
-{
-	point[0] += shiftY;
-	point[1] += shiftX;
+	return std::array<Point, 4>({ upperLeft, upperRight, lowerRight, lowerLeft });
 }
 
 /// Wrapper around similar function from namespace wgs84 which is 2DoF
-std::array<double, 3> toCartesian(std::array<double, 3> referencePoint, std::array<double, 3> targetPoint)
+Point toCartesian(Point& referencePoint, Point& targetPoint)
 {
 	std::array<double, 2> refPoint2DoF;
 	std::array<double, 2> targetPoint2DoF;
-	std::copy(referencePoint.begin(), referencePoint.begin() + 2, refPoint2DoF.begin());
-	std::copy(targetPoint.begin(), targetPoint.begin() + 2, targetPoint2DoF.begin());
+	refPoint2DoF[0] = referencePoint.x;
+	refPoint2DoF[1] = referencePoint.y;
+	targetPoint2DoF[0] = targetPoint.x;
+	targetPoint2DoF[1] = targetPoint.y;
 
 	std::array<double, 2> result2Dof = wgs84::toCartesian(refPoint2DoF, targetPoint2DoF);
 
-	std::array<double, 3> result = { 0., 0., 0. };
-	std::copy(result2Dof.begin(), result2Dof.begin() + 2, result.begin());
+	Point result = { result2Dof[0], result2Dof[1] };
 
 	return result;
 }
 
-std::array<std::array<std::array<double, 3>, 2>, 4> getLinesOfRect(std::array<std::array<double, 3>, 4> rect)
+std::array<std::array<Point, 2>, 4> getLinesOfRect(std::array<Point, 4> rect)
 {
-	auto lines = std::array<std::array<std::array<double, 3>, 2>, 4>();
+	auto lines = std::array<std::array<Point, 2>, 4>();
 	for (uint32_t i = 0; i < 3; i++)
 	{
-		lines[i] = std::array<std::array<double, 3>, 2>({ rect[i], rect[i + 1] });
+		lines[i] = std::array<Point, 2>({ rect[i], rect[i + 1] });
 	}
-	lines[3] = std::array<std::array<double, 3>, 2>({ rect[3], rect[0] });
+	lines[3] = std::array<Point, 2>({ rect[3], rect[0] });
 
 	return lines;
 }
 
-void drawArbitraryRect(cv::Mat& img, std::array<std::array<double, 3>, 4> rect, cv::Scalar color, int thickness = 1)
+void drawArbitraryRect(cv::Mat& img, std::array<Point, 4> rect, cv::Scalar color, int thickness = 1)
 {
 	auto lines = getLinesOfRect(rect);
 	for (auto line : lines)
 	{
-		cv::line(img, cv::Point(line[0][1], line[0][0]), cv::Point(line[1][1], line[1][0]), color, thickness = 1);
+		cv::line(img, cv::Point(line[0].x, line[0].y), cv::Point(line[1].x, line[1].y), color, thickness = 1);
 	}
 }
 
 /// Visualizes scene in the coordinates of the robot
-void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos, 
-	std::array<std::array<double, 3>, 4> objectPos, 
+void visualizeScene(std::vector<std::array<Point, 4>> lanesPos,
+	std::array<Point, 4> objectPos,
 	uint32_t sceneSizeX = 300,
 	uint32_t sceneSizeY = 300)
 {
@@ -91,7 +75,9 @@ void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos,
 	{
 		for (auto& point : lane)
 		{
-			scale(point, 10);
+			point *= 10;
+			point.x += sceneSizeX / 2;
+			point.y += sceneSizeY / 2;
 		}
 		drawArbitraryRect(img, lane, cv::Scalar(0, 0, 255), 2);
 	}
@@ -99,7 +85,9 @@ void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos,
 	// Draw object scaled
 	for (auto& point : objectPos)
 	{
-		scale(point, 10);
+		point *= 10;
+		point.x += sceneSizeX / 2;
+		point.y += sceneSizeY / 2;
 	}
 
 	drawArbitraryRect(img, objectPos, cv::Scalar(255, 0, 0), 2);
@@ -111,36 +99,34 @@ void visualizeScene(std::vector<std::array<std::array<double, 3>, 4>> lanesPos,
 	cv::waitKey(0);
 }
 
-std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<double, 3> aPos, std::array<double, 3> bPos, double laneWidth, uint32_t nLanes)
+std::vector<std::array<Point, 4>> lanesCoordinates(Point aPos, Point bPos, double laneWidth, uint32_t nLanes)
 {
-	double roadYawRad = atan((bPos[0] - aPos[0]) / (bPos[1] - aPos[1]));
+	double roadYawRad = atan((bPos.y - aPos.y) / (bPos.x - aPos.x));
 
-	double shiftY = aPos[0];
-	double shiftX = aPos[1];
+	double shiftY = aPos.y;
+	double shiftX = aPos.x;
 
-	shift(aPos, -shiftX, -shiftY);
-	shift(bPos, -shiftX, -shiftY);
+	aPos = { 0., 0. };
+	bPos = { dist(aPos, bPos), 0. };
 
-	rotate(aPos, -roadYawRad);
-	rotate(bPos, -roadYawRad);
-
-	auto lanesCoordinates = std::vector<std::array<std::array<double, 3>, 4>>();
+	auto lanesCoordinates = std::vector<std::array<Point, 4>>();
 
 	uint32_t i;
 	double y;
 	for (i = 0, y = -(nLanes * laneWidth / 2); i < nLanes; i++, y += laneWidth)
 	{
-		auto laneCoords = std::array<std::array<double, 3>, 4 >({
-			std::array<double, 3>({y, 0., 0.}),                  // lower left
-			std::array<double, 3>({y, bPos[1], 0.}),             // lower right
-			std::array<double, 3>({y + laneWidth, bPos[1], 0.}), // upper right
-			std::array<double, 3>({y + laneWidth, 0., 0.})       // upper left
+		auto laneCoords = std::array<Point, 4 >({
+			Point({0., y}),                  // lower left
+			Point({bPos.x, y}),              // lower right
+			Point({bPos.x, y + laneWidth}),  // upper right
+			Point({0., y + laneWidth})       // upper left
 			});
 
 		for (auto& laneCoord : laneCoords)
 		{
-			shift(laneCoord, shiftX, shiftY);
-			rotate(laneCoord, roadYawRad);
+			laneCoord.x += shiftX;
+			laneCoord.y += shiftY;
+			laneCoord.rotate(roadYawRad);
 		}
 		lanesCoordinates.push_back(laneCoords);
 	}
@@ -148,7 +134,7 @@ std::vector<std::array<std::array<double, 3>, 4>> lanesCoordinates(std::array<do
 	return lanesCoordinates;
 }
 
-bool areRectsIntersect(std::array<std::array<double, 3>, 4> rect1, std::array<std::array<double, 3>, 4> rect2)
+bool areRectsIntersect(std::array<Point, 4> rect1, std::array<Point, 4> rect2)
 {
 	auto lines1 = getLinesOfRect(rect1);
 	auto lines2 = getLinesOfRect(rect2);
@@ -167,30 +153,33 @@ bool areRectsIntersect(std::array<std::array<double, 3>, 4> rect1, std::array<st
 	return false;
 }
 
-std::vector<uint32_t> whichLanesBusy(std::vector<std::array<std::array<double, 3>, 4>> lanesPoints, std::array<std::array<double, 3>, 4> objPoints)
+std::vector<uint32_t> whichLanesBusy(std::vector<std::array<Point, 4>> lanesPoints, std::array<Point, 4> objPoints)
 {
 	// transform lanes to make their rectangles regular, with angle = 0
 	auto referencePoint = lanesPoints[0][0]; //the lower left of rightest lane
 
-	double roadYawRad = atan((lanesPoints[0][0][0] - lanesPoints[0][1][0])
-		/ (lanesPoints[0][1][0] - lanesPoints[0][2][0]));
+	double roadYawRad = atan((lanesPoints[0][0].y - lanesPoints[0][1].y)
+		/ (lanesPoints[0][1].y - lanesPoints[0][2].y));
 
-	double shiftY = referencePoint[0];
-	double shiftX = referencePoint[1];
+	double shiftX = referencePoint.x;
+	double shiftY = referencePoint.y;
 
 	for (auto& lane : lanesPoints)
 	{
 		for (auto& point : lane)
 		{
-			shift(point, -shiftX, -shiftY);
-			rotate(point, -roadYawRad);
+			point.x -= shiftX;
+			point.y -= shiftY;
+
+			point.rotate(-roadYawRad);
 		}
 	}
 
 	for (auto& point : objPoints)
 	{
-		shift(point, -shiftX, -shiftY);
-		rotate(point, -roadYawRad);
+		point.x -= shiftX;
+		point.y -= shiftY;
+		point.rotate(-roadYawRad);
 	}
 
 	// Check object in lanes
@@ -206,25 +195,26 @@ std::vector<uint32_t> whichLanesBusy(std::vector<std::array<std::array<double, 3
 	return busyLanes;
 }
 
-std::vector<uint32_t> busyLanes(std::array<double, 3> rPos, double rAzimuth,
-	std::array<double, 3> aPos, std::array<double, 3> bPos, uint32_t nLanes, double laneWidth,
-	std::array<double, 3> objPos, double objYaw, double objLength, double objWidth, bool viz=true)
+std::vector<uint32_t> busyLanes(Point rPos, double rAzimuth,
+	Point aPos, Point bPos, uint32_t nLanes, double laneWidth,
+	Point objPos, double objYaw, double objLength, double objWidth, bool viz=true)
 {
 	// Find all the points of an object 
-	auto objPoints = getBoxPoints(std::array<double, 3>({ 0., 0., 0. }), objWidth, objLength);
+	auto objPoints = getBoxPoints(Point({ 0., 0.}), objWidth, objLength);
 	for (auto &objPoint : objPoints)
 	{
-		rotate(objPoint, -objYaw);
-		shift(objPoint, objPos[1], objPos[0]);
+		objPoint.rotate(-objYaw);
+		objPoint.x += objPos.x;
+		objPoint.y += objPos.y;
 	}
 
 	// Find the road points in cartesian coords
-	std::array<double, 3> aPosCart = toCartesian(rPos, aPos);
-	std::array<double, 3> bPosCart = toCartesian(rPos, bPos);
+	Point aPosCart = toCartesian(rPos, aPos);
+	Point bPosCart = toCartesian(rPos, bPos);
 
 	// Rotate them to match robot's coordinate system
-	rotate(aPosCart, deg2rad(-rAzimuth));
-	rotate(bPosCart, deg2rad(-rAzimuth));
+	aPosCart.rotate(deg2rad(-rAzimuth));
+	bPosCart.rotate(deg2rad(-rAzimuth));
 
 	// Find all the points of the lanes
 	auto lanePoints = lanesCoordinates(aPosCart, bPosCart, laneWidth, nLanes);

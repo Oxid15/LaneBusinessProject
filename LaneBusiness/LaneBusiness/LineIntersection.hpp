@@ -1,13 +1,48 @@
 #pragma once
 // The code adapted from https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 
+class Point
+{
+public:
+	double x;
+	double y;
+
+	void operator *= (const double& factor)
+	{
+		x *= factor;
+		y *= factor;
+	}
+
+	void operator -= (const double& shift)
+	{
+		x -= shift;
+		y -= shift;
+	}
+
+	void operator += (const double& shift)
+	{
+		x += shift;
+		y += shift;
+	}
+
+	/// Rotates point in place counterclockwise
+	void rotate(double angleRad)
+	{
+		auto point0 = x * sin(angleRad) + y * cos(angleRad);
+		auto point1 = x * cos(angleRad) - y * sin(angleRad);
+
+		x = point0;
+		y = point1;
+	}
+};
+
 
 // Given three collinear points p, q, r, the function checks if
 // point q lies on line segment 'pr'
-bool onSegment(std::array<double, 3> p, std::array<double, 3> q, std::array<double, 3> r)
+bool onSegment(Point p, Point q, Point r)
 {
-	if (q[1] <= std::max(p[1], r[1]) && q[1] >= std::min(p[1], r[1]) &&
-		q[0] <= std::max(p[0], r[0]) && q[0] >= std::min(p[0], r[0]))
+	if (q.x <= std::max(p.x, r.x) && q.x >= std::min(p.x, r.x) &&
+		q.y <= std::max(p.y, r.y) && q.y >= std::min(p.y, r.y))
 		return true;
 
 	return false;
@@ -18,22 +53,22 @@ bool onSegment(std::array<double, 3> p, std::array<double, 3> q, std::array<doub
 // 0 --> p, q and r are collinear
 // 1 --> Clockwise
 // 2 --> Counterclockwise
-int orientation(std::array<double, 3> p, std::array<double, 3> q, std::array<double, 3> r)
+int orientation(Point p, Point q, Point r)
 {
-	int val = (q[0] - p[0]) * (r[1] - q[1]) -
-		(q[1] - p[1]) * (r[0] - q[0]);
+	int val = (q.y - p.y) * (r.x - q.x) -
+		(q.x - p.x) * (r.y - q.y);
 
 	if (val == 0) return 0;  // collinear
 
 	return (val > 0) ? 1 : 2; // clock or counterclock wise
 }
 
-bool areLinesIntersect(std::array<std::array<double, 3>, 2> line1, std::array<std::array<double, 3>, 2> line2)
+bool areLinesIntersect(std::array<Point, 2>& line1, std::array<Point, 2>& line2)
 {
-	//std::array<double, 3> p1; //line1[0]
-	//std::array<double, 3> q1; //line1[1]
-	//std::array<double, 3> p2; //line2[0]
-	//std::array<double, 3> q2; //line2[1]
+	//Point p1; //line1[0]
+	//Point q1; //line1[1]
+	//Point p2; //line2[0]
+	//Point q2; //line2[1]
 
 	// Find the four orientations needed for general and
 	// special cases
