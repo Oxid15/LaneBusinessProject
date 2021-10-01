@@ -6,7 +6,7 @@ double deg2rad(double deg) {
 	return deg * M_PI / 180.0;
 }
 
-double dist(Point a, Point b)
+double dist(const Point& a, const Point& b)
 {
 	return sqrt((a.x + b.x) * (a.x + b.x) + (a.y + b.y) * (a.y + b.y));
 }
@@ -22,7 +22,7 @@ std::array<Point, 4> getBoxPoints(const Point& centerPoint, double length, doubl
 }
 
 /// Wrapper around similar function from namespace wgs84 which is 2DoF
-Point toCartesian(Point& referencePoint, Point& targetPoint)
+Point toCartesian(const Point& referencePoint, const Point& targetPoint)
 {
 	std::array<double, 2> refPoint2DoF;
 	std::array<double, 2> targetPoint2DoF;
@@ -95,15 +95,14 @@ void visualizeScene(std::vector<std::array<Point, 4>> lanesPos,
 	cv::waitKey(0);
 }
 
-std::vector<std::array<Point, 4>> lanesCoordinates(Point aPos, Point bPos, double laneWidth, uint32_t nLanes)
+std::vector<std::array<Point, 4>> lanesCoordinates(const Point& aPos, const Point& bPos, double laneWidth, uint32_t nLanes)
 {
 	double roadYawRad = atan((bPos.y - aPos.y) / (bPos.x - aPos.x));
 
 	double shiftY = aPos.y;
 	double shiftX = aPos.x;
 
-	aPos = { 0., 0. };
-	bPos = { dist(aPos, bPos), 0. };
+	Point initbPos = { dist(aPos, bPos), 0. };
 
 	auto lanesCoordinates = std::vector<std::array<Point, 4>>();
 
@@ -113,8 +112,8 @@ std::vector<std::array<Point, 4>> lanesCoordinates(Point aPos, Point bPos, doubl
 	{
 		auto laneCoords = std::array<Point, 4 >({
 			Point({0., y}),                  // lower left
-			Point({bPos.x, y}),              // lower right
-			Point({bPos.x, y + laneWidth}),  // upper right
+			Point({initbPos.x, y}),              // lower right
+			Point({initbPos.x, y + laneWidth}),  // upper right
 			Point({0., y + laneWidth})       // upper left
 			});
 
@@ -174,9 +173,9 @@ std::vector<uint32_t> whichLanesBusy(std::vector<std::array<Point, 4>> lanesPoin
 	return busyLanes;
 }
 
-std::vector<uint32_t> busyLanes(Point rPos, double rAzimuth,
-	Point aPos, Point bPos, uint32_t nLanes, double laneWidth,
-	Point objPos, double objYaw, double objLength, double objWidth, bool viz)
+std::vector<uint32_t> busyLanes(const Point& rPos, double rAzimuth,
+	const Point& aPos, const Point& bPos, uint32_t nLanes, double laneWidth,
+	const Point& objPos, double objYaw, double objLength, double objWidth, bool viz)
 {
 	// Find all the points of an object 
 	auto objPoints = getBoxPoints(Point({ 0., 0. }), objWidth, objLength);
