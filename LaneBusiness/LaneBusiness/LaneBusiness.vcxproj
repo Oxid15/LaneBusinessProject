@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\opencv\build\x64\vc15\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\илья\Documents\LaneBusinessProject\LaneBusiness\LaneBusiness;C:\opencv\build\x64\vc15\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opencv_world430d.lib;opencv_world430.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -146,6 +146,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Main.cpp" />
+    <ClCompile Include="LaneBusiness.cpp" />
+    <ClCompile Include="LineIntersection.cpp" />
+    <ClCompile Include="Point.cpp" />
+    <ClCompile Include="Point.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LaneBusiness.hpp" />

@@ -1,5 +1,6 @@
 #include "LaneBusiness\LaneBusiness.hpp"
 
+
 bool test()
 {
 	auto rPos = Point({ 59.96769, 30.30985 }); // lat, long

@@ -18,15 +18,27 @@
     <ClCompile Include="..\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LaneBusiness.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Point.hpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Point.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LineIntersection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WSG84toCartesian.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LaneBusiness.hpp">
+    <ClInclude Include="LineIntersection.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LineIntersection.hpp">
+    <ClInclude Include="LaneBusiness.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
